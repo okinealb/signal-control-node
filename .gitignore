@@ -1,0 +1,36 @@
+# C and embedded build output
+build/
+cmake-build-*/
+Debug/
+Release/
+out/
+*.elf
+*.hex
+*.bin
+*.map
+*.o
+*.d
+*.su
+*.lst
+
+# IDE and generated project files
+.vscode/
+.idea/
+.metadata/
+*.launch
+*.project
+*.cproject
+
+# Python tooling
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# macOS
+.DS_Store
+
+# Local planning and agent instructions
+AGENTS.md
+docs/design.md
