@@ -22,13 +22,33 @@ static void test_filter(void) {
 }
 
 static void test_classifier(void) {
-  assert(signal_classify(9, 10) == SIGNAL_STATE_BELOW_THRESHOLD);
-  assert(signal_classify(10, 10) == SIGNAL_STATE_AT_OR_ABOVE_THRESHOLD);
-  assert(signal_classify(11, 10) == SIGNAL_STATE_AT_OR_ABOVE_THRESHOLD);
+  assert(signal_classify(9, 10) == SIGNAL_STATE_LOW);
+  assert(signal_classify(10, 10) == SIGNAL_STATE_HIGH);
+  assert(signal_classify(11, 10) == SIGNAL_STATE_HIGH);
+}
+
+static void test_hysteresis(void) {
+  signal_state_t state = SIGNAL_STATE_LOW;
+
+  assert(!signal_state_update(NULL, 5, 4, 8));
+  assert(!signal_state_update(&state, 5, 8, 8));
+  assert(!signal_state_update(&state, 5, 9, 8));
+  assert(signal_state_update(&state, 4, 4, 8));
+  assert(state == SIGNAL_STATE_LOW);
+  assert(signal_state_update(&state, 8, 4, 8));
+  assert(state == SIGNAL_STATE_HIGH);
+  assert(signal_state_update(&state, 7, 4, 8));
+  assert(state == SIGNAL_STATE_HIGH);
+  assert(signal_state_update(&state, 4, 4, 8));
+  assert(state == SIGNAL_STATE_LOW);
+
+  state = (signal_state_t)2;
+  assert(!signal_state_update(&state, 5, 4, 8));
 }
 
 int main(void) {
   test_filter();
   test_classifier();
+  test_hysteresis();
   return 0;
 }

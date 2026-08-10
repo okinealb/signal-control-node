@@ -37,8 +37,25 @@ bool signal_filter_push(signal_filter_t *filter, uint16_t sample,
 
 signal_state_t signal_classify(uint16_t sample, uint16_t threshold) {
   if (sample >= threshold) {
-    return SIGNAL_STATE_AT_OR_ABOVE_THRESHOLD;
+    return SIGNAL_STATE_HIGH;
   }
 
-  return SIGNAL_STATE_BELOW_THRESHOLD;
+  return SIGNAL_STATE_LOW;
+}
+
+bool signal_state_update(signal_state_t *state, uint16_t value,
+                         uint16_t low_threshold, uint16_t high_threshold) {
+  if (state == NULL ||
+      (*state != SIGNAL_STATE_LOW && *state != SIGNAL_STATE_HIGH) ||
+      low_threshold >= high_threshold) {
+    return false;
+  }
+
+  if (*state == SIGNAL_STATE_LOW && value >= high_threshold) {
+    *state = SIGNAL_STATE_HIGH;
+  } else if (*state == SIGNAL_STATE_HIGH && value <= low_threshold) {
+    *state = SIGNAL_STATE_LOW;
+  }
+
+  return true;
 }

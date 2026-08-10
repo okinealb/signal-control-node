@@ -1,6 +1,6 @@
 /**
  * @file signal.h
- * @brief Moving-average filtering and threshold classification.
+ * @brief Moving-average filtering and threshold state decisions.
  */
 
 #ifndef SIGNAL_CONTROL_SIGNAL_H
@@ -56,20 +56,36 @@ bool signal_filter_init(signal_filter_t *filter, size_t window_size);
 bool signal_filter_push(signal_filter_t *filter, uint16_t sample,
                         uint16_t *average);
 
-/** Result of comparing a sample with a threshold. */
-typedef enum {
-  SIGNAL_STATE_BELOW_THRESHOLD,
-  SIGNAL_STATE_AT_OR_ABOVE_THRESHOLD
-} signal_state_t;
+/** Low or high state for a signal decision. */
+typedef enum { SIGNAL_STATE_LOW, SIGNAL_STATE_HIGH } signal_state_t;
 
 /**
- * @brief Classify a sample against an inclusive threshold.
+ * @brief Classify a value against an inclusive threshold.
  *
- * @param sample Sample value to classify.
+ * This comparison does not retain state.
+ *
+ * @param sample Value to classify.
  * @param threshold Boundary between states.
- * @retval SIGNAL_STATE_AT_OR_ABOVE_THRESHOLD sample >= threshold.
- * @retval SIGNAL_STATE_BELOW_THRESHOLD sample < threshold.
+ * @retval SIGNAL_STATE_HIGH sample >= threshold.
+ * @retval SIGNAL_STATE_LOW sample < threshold.
  */
 signal_state_t signal_classify(uint16_t sample, uint16_t threshold);
+
+/**
+ * @brief Update a signal state with two-threshold hysteresis.
+ *
+ * The caller owns the state and must initialize it to a valid enum value.
+ * Values between the thresholds preserve the current state.
+ * The low threshold must be strictly less than the high threshold.
+ *
+ * @param[in,out] state State to update.
+ * @param value Value to compare.
+ * @param low_threshold Value at or below which the high state clears.
+ * @param high_threshold Value at or above which the low state sets.
+ * @retval true The state was valid and the transition was evaluated.
+ * @retval false An argument, state, or threshold bound was invalid.
+ */
+bool signal_state_update(signal_state_t *state, uint16_t value,
+                         uint16_t low_threshold, uint16_t high_threshold);
 
 #endif
