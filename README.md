@@ -1,13 +1,13 @@
-# Real-time signal monitor and control node
+# Signal Control Node
 
-`realtime-node` is a planned C and FreeRTOS firmware project for a small
+`signal-control-node` is a planned C and FreeRTOS firmware project for a small
 real-time signal monitor and control node.
 
 The target system will sample an input, move data between tasks, process the
 signal, control an output, expose UART telemetry, and handle injected faults.
-The project will begin with host-side tests and simulation, then move to an
-STM32 Nucleo-F446RE for hardware validation.
+The host-side `signal_control` library currently contains moving-average
+filtering and threshold classification. The project will then move to
+FreeRTOS, simulation, and an STM32 Nucleo-F446RE for hardware validation.
 
-Current status: repository setup only. The detailed design record is kept
-locally while the project is being planned. No firmware or hardware results are
-claimed yet.
+Current status: host-side signal logic only. STM32 firmware, FreeRTOS behavior,
+and hardware results are not claimed yet.
