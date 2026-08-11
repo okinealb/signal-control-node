@@ -36,6 +36,6 @@ jobs:
       - name: Check formatting
         run: >-
           clang-format --dry-run --Werror
-          src/signal.c
-          tests/test_signal.c
-          include/signal_control/signal.h
+          src/*.c
+          tests/*.c
+          include/signal_control/*.h
