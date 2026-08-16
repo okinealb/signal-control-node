@@ -7,7 +7,7 @@ The target system will sample an input, move data between tasks, process the
 signal, control an output, expose UART telemetry, and handle injected faults.
 The host-side `signal_control` library currently contains moving-average
 filtering and threshold classification. The project will then move to
-FreeRTOS, simulation, and an STM32 Nucleo-F446RE for hardware validation.
+FreeRTOS simulation and an STM32 Nucleo-F446RE for hardware validation.
 
-Current status: host-side signal logic only. STM32 firmware, FreeRTOS behavior,
-and hardware results are not claimed yet.
+Current status: host-side signal logic and a FreeRTOS POSIX task/queue harness.
+STM32 firmware, hardware behavior, and physical results are not claimed yet.
