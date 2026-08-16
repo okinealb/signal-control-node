@@ -20,6 +20,10 @@ FetchContent_Declare(
   GIT_TAG ce221a8bb468e462ca6b435cef66a9636e00baf4)
 FetchContent_MakeAvailable(freertos_kernel)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND FREERTOS_PORT STREQUAL "GCC_POSIX")
+  target_compile_definitions(freertos_kernel_port PRIVATE _POSIX_C_SOURCE=200809L)
+endif()
+
 add_library(signal_control src/signal.c src/command.c)
 target_include_directories(signal_control PUBLIC include)
 target_compile_options(signal_control PRIVATE -Wall -Wextra -Wpedantic)
