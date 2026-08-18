@@ -12,6 +12,9 @@ enum {
   SAMPLE_COUNT = 6,
   QUEUE_LENGTH = 2,
   FILTER_WINDOW = 2,
+  STALL_SEQUENCE = 2,
+  PROCESSING_DEADLINE_TICKS = 2,
+  PROCESSING_STALL_TICKS = 4,
 };
 
 typedef struct {
@@ -46,6 +49,9 @@ static StackType_t processing_task_stack[configMINIMAL_STACK_SIZE];
 static StackType_t control_task_stack[configMINIMAL_STACK_SIZE];
 
 static volatile BaseType_t test_complete = pdFALSE;
+static volatile BaseType_t processing_stalled = pdFALSE;
+static volatile BaseType_t processing_resumed = pdFALSE;
+static volatile signal_state_t output_state = SIGNAL_STATE_LOW;
 
 static void sample_task(void *parameters) {
   (void)parameters;
@@ -76,6 +82,11 @@ static void processing_task(void *parameters) {
     assert(xQueueReceive(sample_queue, &sample, pdMS_TO_TICKS(1000U)) ==
            pdPASS);
     assert(sample.sequence == sequence);
+
+    if (sequence == STALL_SEQUENCE) {
+      vTaskDelay(PROCESSING_STALL_TICKS);
+    }
+
     assert(signal_filter_push(&filter, sample.value, &average));
     assert(signal_state_update(&state, average, 2, 8));
 
@@ -92,17 +103,39 @@ static void processing_task(void *parameters) {
 }
 
 static void control_task(void *parameters) {
+  bool fault_active = false;
+  uint32_t decisions_received = 0;
+
   (void)parameters;
 
-  for (uint32_t sequence = 0; sequence < SAMPLE_COUNT; sequence++) {
+  while (decisions_received < SAMPLE_COUNT) {
     decision_t decision;
 
-    assert(xQueueReceive(decision_queue, &decision, pdMS_TO_TICKS(1000U)) ==
-           pdPASS);
-    assert(decision.sequence == sequence);
-    assert(decision.average == expected_averages[sequence]);
-    assert(decision.state == expected_states[sequence]);
+    if (xQueueReceive(decision_queue, &decision, PROCESSING_DEADLINE_TICKS) !=
+        pdPASS) {
+      fault_active = true;
+      processing_stalled = pdTRUE;
+      output_state = SIGNAL_STATE_LOW;
+      continue;
+    }
+
+    assert(decision.sequence == decisions_received);
+    assert(decision.average == expected_averages[decisions_received]);
+    assert(decision.state == expected_states[decisions_received]);
+
+    if (fault_active) {
+      processing_resumed = pdTRUE;
+      assert(output_state == SIGNAL_STATE_LOW);
+    } else {
+      output_state = decision.state;
+    }
+
+    decisions_received++;
   }
+
+  assert(processing_stalled == pdTRUE);
+  assert(processing_resumed == pdTRUE);
+  assert(output_state == SIGNAL_STATE_LOW);
 
   test_complete = pdTRUE;
   vTaskEndScheduler();
@@ -134,6 +167,9 @@ int main(void) {
   vTaskStartScheduler();
 
   assert(test_complete == pdTRUE);
+  assert(processing_stalled == pdTRUE);
+  assert(processing_resumed == pdTRUE);
+  assert(output_state == SIGNAL_STATE_LOW);
   puts("PASS");
   return 0;
 }
