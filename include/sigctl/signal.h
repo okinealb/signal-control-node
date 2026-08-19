@@ -3,29 +3,29 @@
  * @brief Moving-average filtering and threshold state decisions.
  */
 
-#ifndef SIGNAL_CONTROL_SIGNAL_H
-#define SIGNAL_CONTROL_SIGNAL_H
+#ifndef SIGCTL_SIGNAL_H
+#define SIGCTL_SIGNAL_H
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 /** Maximum number of samples supported by a moving-average filter. */
-#define SIGNAL_FILTER_MAX_WINDOW 16u
+#define SIGCTL_FILTER_MAX_WINDOW 16u
 
 /**
  * @brief State for a bounded moving-average filter.
  *
- * Initialize the filter with signal_filter_init() before using it. Treat the
+ * Initialize the filter with sigctl_filter_init() before using it. Treat the
  * fields as implementation state and do not modify them directly.
  */
 typedef struct {
-  uint16_t samples[SIGNAL_FILTER_MAX_WINDOW];
+  uint16_t samples[SIGCTL_FILTER_MAX_WINDOW];
   uint32_t sum;
   size_t next;
   size_t count;
   size_t window_size;
-} signal_filter_t;
+} sigctl_filter_t;
 
 /**
  * @brief Initialize a moving-average filter.
@@ -37,7 +37,7 @@ typedef struct {
  * @retval true The filter was initialized.
  * @retval false filter is NULL or window_size is outside the supported range.
  */
-bool signal_filter_init(signal_filter_t *filter, size_t window_size);
+bool sigctl_filter_init(sigctl_filter_t *filter, size_t window_size);
 
 /**
  * @brief Add a sample and compute the current moving average.
@@ -49,15 +49,15 @@ bool signal_filter_init(signal_filter_t *filter, size_t window_size);
  * @param sample New sample value.
  * @param[out] average Output location for the computed average. Must not be
  *                      NULL.
- * @pre The filter was successfully initialized with signal_filter_init().
+ * @pre The filter was successfully initialized with sigctl_filter_init().
  * @retval true The sample was accepted and the average was written.
  * @retval false An argument or stored filter bound was invalid.
  */
-bool signal_filter_push(signal_filter_t *filter, uint16_t sample,
+bool sigctl_filter_push(sigctl_filter_t *filter, uint16_t sample,
                         uint16_t *average);
 
 /** Low or high state for a signal decision. */
-typedef enum { SIGNAL_STATE_LOW, SIGNAL_STATE_HIGH } signal_state_t;
+typedef enum { SIGCTL_STATE_LOW, SIGCTL_STATE_HIGH } sigctl_state_t;
 
 /**
  * @brief Classify a value against an inclusive threshold.
@@ -66,10 +66,10 @@ typedef enum { SIGNAL_STATE_LOW, SIGNAL_STATE_HIGH } signal_state_t;
  *
  * @param sample Value to classify.
  * @param threshold Boundary between states.
- * @retval SIGNAL_STATE_HIGH sample >= threshold.
- * @retval SIGNAL_STATE_LOW sample < threshold.
+ * @retval SIGCTL_STATE_HIGH sample >= threshold.
+ * @retval SIGCTL_STATE_LOW sample < threshold.
  */
-signal_state_t signal_classify(uint16_t sample, uint16_t threshold);
+sigctl_state_t sigctl_classify(uint16_t sample, uint16_t threshold);
 
 /**
  * @brief Update a signal state with two-threshold hysteresis.
@@ -85,7 +85,7 @@ signal_state_t signal_classify(uint16_t sample, uint16_t threshold);
  * @retval true The state was valid and the transition was evaluated.
  * @retval false An argument, state, or threshold bound was invalid.
  */
-bool signal_state_update(signal_state_t *state, uint16_t value,
+bool sigctl_state_update(sigctl_state_t *state, uint16_t value,
                          uint16_t low_threshold, uint16_t high_threshold);
 
 #endif

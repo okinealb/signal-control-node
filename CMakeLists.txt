@@ -24,20 +24,25 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND FREERTOS_PORT STREQUAL "GCC_POSIX")
   target_compile_definitions(freertos_kernel_port PRIVATE _POSIX_C_SOURCE=200809L)
 endif()
 
-add_library(signal_control src/signal.c src/command.c)
-target_include_directories(signal_control PUBLIC include)
-target_compile_options(signal_control PRIVATE -Wall -Wextra -Wpedantic)
+add_library(sigctl src/signal.c)
+target_include_directories(sigctl PUBLIC include)
+target_compile_options(sigctl PRIVATE -Wall -Wextra -Wpedantic)
+
+add_library(sigctl_node src/command.c src/control.c)
+target_include_directories(sigctl_node PUBLIC include)
+target_link_libraries(sigctl_node PUBLIC sigctl)
+target_compile_options(sigctl_node PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(signal_control_test tests/test_signal.c)
-target_link_libraries(signal_control_test PRIVATE signal_control)
+target_link_libraries(signal_control_test PRIVATE sigctl)
 target_compile_options(signal_control_test PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(signal_command_test tests/test_command.c)
-target_link_libraries(signal_command_test PRIVATE signal_control)
+target_link_libraries(signal_command_test PRIVATE sigctl_node)
 target_compile_options(signal_command_test PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(signal_node_test tests/test_node.c)
-target_link_libraries(signal_node_test PRIVATE signal_control freertos_kernel)
+target_link_libraries(signal_node_test PRIVATE sigctl_node freertos_kernel)
 target_compile_options(signal_node_test PRIVATE -Wall -Wextra -Wpedantic)
 
 enable_testing()

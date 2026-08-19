@@ -1,8 +1,8 @@
-#include "signal_control/signal.h"
+#include "sigctl/signal.h"
 
-bool signal_filter_init(signal_filter_t *filter, size_t window_size) {
+bool sigctl_filter_init(sigctl_filter_t *filter, size_t window_size) {
   if (filter == NULL || window_size == 0 ||
-      window_size > SIGNAL_FILTER_MAX_WINDOW) {
+      window_size > SIGCTL_FILTER_MAX_WINDOW) {
     return false;
   }
 
@@ -13,10 +13,10 @@ bool signal_filter_init(signal_filter_t *filter, size_t window_size) {
   return true;
 }
 
-bool signal_filter_push(signal_filter_t *filter, uint16_t sample,
+bool sigctl_filter_push(sigctl_filter_t *filter, uint16_t sample,
                         uint16_t *average) {
   if (filter == NULL || average == NULL || filter->window_size == 0 ||
-      filter->window_size > SIGNAL_FILTER_MAX_WINDOW ||
+      filter->window_size > SIGCTL_FILTER_MAX_WINDOW ||
       filter->next >= filter->window_size ||
       filter->count > filter->window_size) {
     return false;
@@ -35,26 +35,26 @@ bool signal_filter_push(signal_filter_t *filter, uint16_t sample,
   return true;
 }
 
-signal_state_t signal_classify(uint16_t sample, uint16_t threshold) {
+sigctl_state_t sigctl_classify(uint16_t sample, uint16_t threshold) {
   if (sample >= threshold) {
-    return SIGNAL_STATE_HIGH;
+    return SIGCTL_STATE_HIGH;
   }
 
-  return SIGNAL_STATE_LOW;
+  return SIGCTL_STATE_LOW;
 }
 
-bool signal_state_update(signal_state_t *state, uint16_t value,
+bool sigctl_state_update(sigctl_state_t *state, uint16_t value,
                          uint16_t low_threshold, uint16_t high_threshold) {
   if (state == NULL ||
-      (*state != SIGNAL_STATE_LOW && *state != SIGNAL_STATE_HIGH) ||
+      (*state != SIGCTL_STATE_LOW && *state != SIGCTL_STATE_HIGH) ||
       low_threshold >= high_threshold) {
     return false;
   }
 
-  if (*state == SIGNAL_STATE_LOW && value >= high_threshold) {
-    *state = SIGNAL_STATE_HIGH;
-  } else if (*state == SIGNAL_STATE_HIGH && value <= low_threshold) {
-    *state = SIGNAL_STATE_LOW;
+  if (*state == SIGCTL_STATE_LOW && value >= high_threshold) {
+    *state = SIGCTL_STATE_HIGH;
+  } else if (*state == SIGCTL_STATE_HIGH && value <= low_threshold) {
+    *state = SIGCTL_STATE_LOW;
   }
 
   return true;

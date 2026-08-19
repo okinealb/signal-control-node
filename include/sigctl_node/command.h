@@ -2,33 +2,33 @@
  * @file command.h
  * @brief Bounded text commands for the signal-control node.
  */
-#ifndef SIGNAL_CONTROL_COMMAND_H
-#define SIGNAL_CONTROL_COMMAND_H
+#ifndef SIGCTL_NODE_COMMAND_H
+#define SIGCTL_NODE_COMMAND_H
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 /** Maximum number of characters accepted in one command line. */
-#define SIGNAL_COMMAND_MAX_LINE_LENGTH 48u
+#define SIGCTL_COMMAND_MAX_LINE_LENGTH 48u
 
 /** Kind of command decoded from a command line. */
 typedef enum {
-  SIGNAL_COMMAND_STATUS,
-  SIGNAL_COMMAND_SET_THRESHOLDS
-} signal_command_type_t;
+  SIGCTL_COMMAND_STATUS,
+  SIGCTL_COMMAND_SET_THRESHOLDS
+} sigctl_command_type_t;
 
 /**
  * @brief Parsed command request.
  *
- * The threshold fields are used only for SIGNAL_COMMAND_SET_THRESHOLDS. They
+ * The threshold fields are used only for SIGCTL_COMMAND_SET_THRESHOLDS. They
  * are zero for the other command types after a successful parse.
  */
 typedef struct {
-  signal_command_type_t type;
+  sigctl_command_type_t type;
   uint16_t low_threshold;
   uint16_t high_threshold;
-} signal_command_t;
+} sigctl_command_t;
 
 /**
  * @brief Parse one bounded command line.
@@ -45,7 +45,7 @@ typedef struct {
  * @retval true The line matched a supported command.
  * @retval false An argument, length, token, or threshold bound was invalid.
  */
-bool signal_command_parse(const char *line, size_t length,
-                          signal_command_t *command);
+bool sigctl_command_parse(const char *line, size_t length,
+                          sigctl_command_t *command);
 
 #endif
