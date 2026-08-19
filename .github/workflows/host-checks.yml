@@ -38,4 +38,5 @@ jobs:
           clang-format --dry-run --Werror
           src/*.c
           tests/*.c
-          include/signal_control/*.h
+          include/sigctl/*.h
+          include/sigctl_node/*.h

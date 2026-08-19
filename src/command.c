@@ -1,4 +1,4 @@
-#include "signal_control/command.h"
+#include "sigctl_node/command.h"
 
 #include <string.h>
 
@@ -40,14 +40,14 @@ static bool parse_uint16(const char **cursor, const char *end,
   return true;
 }
 
-bool signal_command_parse(const char *line, size_t length,
-                          signal_command_t *command) {
-  signal_command_t parsed = {0};
+bool sigctl_command_parse(const char *line, size_t length,
+                          sigctl_command_t *command) {
+  sigctl_command_t parsed = {0};
   const char *end;
   const char *cursor;
 
   if (line == NULL || command == NULL ||
-      length > SIGNAL_COMMAND_MAX_LINE_LENGTH) {
+      length > SIGCTL_COMMAND_MAX_LINE_LENGTH) {
     return false;
   }
 
@@ -57,7 +57,7 @@ bool signal_command_parse(const char *line, size_t length,
   if (match_word(&cursor, end, "STATUS")) {
     skip_spaces(&cursor, end);
     if (cursor == end) {
-      parsed.type = SIGNAL_COMMAND_STATUS;
+      parsed.type = SIGCTL_COMMAND_STATUS;
       *command = parsed;
       return true;
     }
@@ -73,7 +73,7 @@ bool signal_command_parse(const char *line, size_t length,
         if (parse_uint16(&cursor, end, &parsed.high_threshold)) {
           skip_spaces(&cursor, end);
           if (cursor == end && parsed.low_threshold < parsed.high_threshold) {
-            parsed.type = SIGNAL_COMMAND_SET_THRESHOLDS;
+            parsed.type = SIGCTL_COMMAND_SET_THRESHOLDS;
             *command = parsed;
             return true;
           }
