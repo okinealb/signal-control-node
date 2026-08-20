@@ -1,5 +1,7 @@
 #include "sigctl/signal.h"
+#include "sigctl_node/command.h"
 #include "sigctl_node/control.h"
+#include "sigctl_node/status.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -103,10 +105,15 @@ static void processing_task(void *parameters) {
 
 static void control_task(void *parameters) {
   sigctl_control_t control;
+  sigctl_command_t command;
+  sigctl_status_t status = {0};
   uint32_t decisions_received = 0;
+  bool status_captured = false;
 
   (void)parameters;
   assert(sigctl_control_init(&control));
+  assert(sigctl_command_parse("STATUS", sizeof("STATUS") - 1u, &command));
+  assert(command.type == SIGCTL_COMMAND_STATUS);
 
   while (decisions_received < SAMPLE_COUNT) {
     decision_t decision;
@@ -126,6 +133,16 @@ static void control_task(void *parameters) {
 
     if (fault_active) {
       processing_resumed = pdTRUE;
+      if (!status_captured && command.type == SIGCTL_COMMAND_STATUS &&
+          decision.state == SIGCTL_STATE_HIGH) {
+        status.sample_available = true;
+        status.sample_sequence = decision.sequence;
+        status.sample_average = decision.average;
+        status.signal_state = decision.state;
+        status.output_state = control.output_state;
+        status.fault_active = control.fault_active;
+        status_captured = true;
+      }
       assert(control.output_state == SIGCTL_STATE_LOW);
     }
 
@@ -135,6 +152,13 @@ static void control_task(void *parameters) {
   assert(control.fault_active == true);
   assert(processing_resumed == pdTRUE);
   assert(control.output_state == SIGCTL_STATE_LOW);
+  assert(status_captured);
+  assert(status.sample_available);
+  assert(status.sample_sequence == 3U);
+  assert(status.sample_average == 10U);
+  assert(status.signal_state == SIGCTL_STATE_HIGH);
+  assert(status.output_state == SIGCTL_STATE_LOW);
+  assert(status.fault_active);
 
   test_complete = pdTRUE;
   vTaskEndScheduler();
